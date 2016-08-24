@@ -1,4 +1,5 @@
 #include "uldfilterproject.h"
+#include <QUrl>
 #include <QString>
 #include <QDebug>
 
@@ -9,6 +10,14 @@ Uldfilterproject::Uldfilterproject(QObject* parent) : QAbstractVideoFilter(paren
     qDebug() << "Hello World" ;
 }
 
+void Uldfilterproject::retrieveImage(int id, const QString & imgURL){
+    
+    qDebug()<<"["<<id<<"] Image:" << imgURL;
+}
+
+
+
+
 QVideoFilterRunnable * Uldfilterproject::createFilterRunnable(){
     return new UldFilterWorker(this);
 }
@@ -16,7 +25,7 @@ QVideoFilterRunnable * Uldfilterproject::createFilterRunnable(){
 
 
 UldFilterWorker::UldFilterWorker(Uldfilterproject * filter) : 
-    m_stop(false),
+    m_stop(true),
     m_filter(filter)
 {
     qDebug("Filter 0x%lx: ",(unsigned long)m_filter);
@@ -29,6 +38,9 @@ void UldFilterWorker::shutDownWorker(){
     emit m_filter -> finished(Q_NULLPTR);
     
 }
+
+        
+        
 void UldFilterWorker::retrieveFrame(QVideoFrame * input, QVideoFrame::PixelFormat pFmt){
     
     

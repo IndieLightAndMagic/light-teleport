@@ -2,6 +2,7 @@
 #define ULDFILTERPROJECT_H
 
 #include <QImage>
+#include <QQuickItem>
 #include <QAbstractVideoFilter>
 #include <QVideoFilterRunnable>
 
@@ -15,9 +16,10 @@ class ULDFILTERPROJECTSHARED_EXPORT Uldfilterproject : public QAbstractVideoFilt
     Q_OBJECT
     
 public:
-    
     Uldfilterproject(QObject * parent = Q_NULLPTR);
     QVideoFilterRunnable * createFilterRunnable() Q_DECL_OVERRIDE;
+
+    Q_INVOKABLE void retrieveImage(int id, const QString & imgURL);
 
 signals:
     void finished(QObject * result);
@@ -27,6 +29,7 @@ signals:
 class UldFilterWorker: public QVideoFilterRunnable
 {
     
+    
 private:
     bool m_stop;
     Uldfilterproject * m_filter;
@@ -34,7 +37,6 @@ private:
     
     QImage * m_frame;
     void retrieveFrame(QVideoFrame * iFrame, QVideoFrame::PixelFormat pFmt);
-    
 public:
     UldFilterWorker(Uldfilterproject * filter);
     QVideoFrame run(QVideoFrame * input, const QVideoSurfaceFormat & sFmt, RunFlags rFlags);    
