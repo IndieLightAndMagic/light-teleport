@@ -1,6 +1,7 @@
 #ifndef ULDFILTERPROJECT_H
 #define ULDFILTERPROJECT_H
 
+#include <QImage>
 #include <QAbstractVideoFilter>
 #include <QVideoFilterRunnable>
 
@@ -11,6 +12,7 @@
 
 class ULDFILTERPROJECTSHARED_EXPORT Uldfilterproject : public QAbstractVideoFilter
 {
+    Q_OBJECT
     
 public:
     
@@ -26,8 +28,12 @@ class UldFilterWorker: public QVideoFilterRunnable
 {
     
 private:
-    bool m_run;
+    bool m_stop;
     Uldfilterproject * m_filter;
+    void shutDownWorker();
+    
+    QImage * m_frame;
+    void retrieveFrame(QVideoFrame * iFrame, QVideoFrame::PixelFormat pFmt);
     
 public:
     UldFilterWorker(Uldfilterproject * filter);
