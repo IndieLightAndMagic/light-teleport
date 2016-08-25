@@ -14,9 +14,16 @@ void Uldfilterproject::imageRetrieved(){
     qDebug()<<"Signal Arrived! ";
     auto grabResult = qobject_cast<QQuickItemGrabResult*>(sender());
     if (grabResult){
-        qDebug()<<"Image Grabbed!";
+        
+        const QImage img =  grabResult -> image();
+        qDebug()<<"Image Grabbed: "<<img;
+        qDebug()<<"Image Size: "<<img.size();
+        grabResult->saveToFile("dummyfile.png");
+        
     } else {
+        
         qDebug()<<"Not Grabbed!";
+    
     }
     
 }
