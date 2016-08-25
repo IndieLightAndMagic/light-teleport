@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += multimedia quick
+QT       += multimedia quick core
 
 QT       -= gui
 
