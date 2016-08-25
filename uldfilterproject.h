@@ -3,44 +3,34 @@
 
 #include <QImage>
 #include <QQuickItem>
-#include <QAbstractVideoFilter>
-#include <QVideoFilterRunnable>
+#include <QSharedPointer>
+#include <QQuickItemGrabResult>
+
 
 
 #include "uld-filter-project_global.h"
 
 
 
-class ULDFILTERPROJECTSHARED_EXPORT Uldfilterproject : public QAbstractVideoFilter
+class ULDFILTERPROJECTSHARED_EXPORT Uldfilterproject : public QObject
 {
     Q_OBJECT
+
+private:
+    QSharedPointer<QQuickItemGrabResult> m_grab;
+    
+public slots:
+    void imageRetrieved(void);
     
 public:
     Uldfilterproject(QObject * parent = Q_NULLPTR);
-    QVideoFilterRunnable * createFilterRunnable() Q_DECL_OVERRIDE;
+    //QVideoFilterRunnable * createFilterRunnable() Q_DECL_OVERRIDE;
 
-    Q_INVOKABLE void retrieveImage(int id, const QString & imgURL);
+    Q_INVOKABLE void retrieveImage(QQuickItem * qItem);
 
-signals:
-    void finished(QObject * result);
     
 };
 
-class UldFilterWorker: public QVideoFilterRunnable
-{
-    
-    
-private:
-    bool m_stop;
-    Uldfilterproject * m_filter;
-    void shutDownWorker();
-    
-    QImage * m_frame;
-    void retrieveFrame(QVideoFrame * iFrame, QVideoFrame::PixelFormat pFmt);
-public:
-    UldFilterWorker(Uldfilterproject * filter);
-    QVideoFrame run(QVideoFrame * input, const QVideoSurfaceFormat & sFmt, RunFlags rFlags);    
-};
 
 
 #endif // ULDFILTERPROJECT_H
