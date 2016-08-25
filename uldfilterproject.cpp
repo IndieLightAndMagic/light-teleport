@@ -1,10 +1,11 @@
 #include "uldfilterproject.h"
 #include <QString>
 #include <QDebug>
+#include <QQuickItem>
 
 
 
-Uldfilterproject::Uldfilterproject(QObject* parent) : QObject(parent)
+Uldfilterproject::Uldfilterproject(QObject* parent) : QObject(parent),m_pGrab(nullptr)
 {
     qDebug() << "Hello World" ;
 }
@@ -20,16 +21,19 @@ void Uldfilterproject::imageRetrieved(){
     
 }
 
-void Uldfilterproject::retrieveImage(QQuickItem * qItem){
+void Uldfilterproject::retrieveImage(QObject * qItem){
     
     qDebug()<<qItem;
-    QSharedPointer<const QQuickItemGrabResult> m_grab = qItem -> grabToImage();
-    qDebug()<<m_grab; 
+    auto itm = qobject_cast<QQuickItem*>(qItem);
+    
+    m_pGrab = itm  -> grabToImage();
+    qDebug()<<m_pGrab; 
+    
     connect(
-                m_grab.data(),
-                SIGNAL(ready()),
+                m_pGrab.data(),
+                &QQuickItemGrabResult::ready,
                 this,
-                SLOT(imageRetrieved())
+                &Uldfilterproject::imageRetrieved
                 );
     
 }
