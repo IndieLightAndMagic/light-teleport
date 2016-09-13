@@ -5,7 +5,11 @@
 
 
 
-Uldfilterproject::Uldfilterproject(QObject* parent) : QObject(parent),m_pGrab(nullptr)
+Uldfilterproject::Uldfilterproject(QObject* parent) : 
+    QObject(parent),
+    m_pGrab(nullptr),
+    m_connected(false),
+    m_port(0)
 {
     qDebug() << "Hello World" ;
 }
@@ -19,6 +23,8 @@ void Uldfilterproject::imageRetrieved(){
         qDebug()<<"Image Grabbed: "<<img;
         qDebug()<<"Image Size: "<<img.size();
         grabResult->saveToFile("dummyfile.png");
+        
+        
         
     } else {
         
@@ -45,8 +51,35 @@ void Uldfilterproject::retrieveImage(QObject * qItem){
     
 }
 
+void Uldfilterproject::setHostName(const QString & hostName){
+    
+    m_hostName = hostName;
+    
+}
+QString Uldfilterproject::hostName()const{
+    return m_hostName;
+}
 
+void Uldfilterproject::setTcpPort(int tcpPortNumber){
+    
+    m_port = tcpPortNumber;
+    
+}
 
+int Uldfilterproject::tcpPortNumber(){
+    
+    return m_port;
+    
+}
+
+void Uldfilterproject::connectFilterToHost(){
+    
+    
+    qDebug()<<"Connecting Filter to:"<<m_hostName<<"@"<<m_port;
+    
+    
+    
+}
 
 /*QVideoFilterRunnable * Uldfilterproject::createFilterRunnable(){
     return new UldFilterWorker(this);

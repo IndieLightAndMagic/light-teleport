@@ -7,6 +7,7 @@
 #include <QSharedPointer>
 #include <QQuickItemGrabResult>
 
+#include <QQueue>
 
 #include "uld-filter-project_global.h"
 
@@ -18,17 +19,33 @@ class ULDFILTERPROJECTSHARED_EXPORT Uldfilterproject : public QObject
 {
     Q_OBJECT
 
-private:
+    Q_PROPERTY (QString hostName READ hostName WRITE setHostName)
+    Q_PROPERTY (int tcpPort READ tcpPort WRITE setTcpPort)
+    
 /**
  * Shared Pointer to a QQuickItemGrabResult. The QQuickItemGrabResult holds an image with the result of grabbing from a Quick Item.
  */
-    QSharedPointer<QQuickItemGrabResult> m_pGrab;
     
+    QSharedPointer<QQuickItemGrabResult> m_pGrab;
+    QQueue<QImage> iQ;
+    bool m_connected;
+    
+    QString m_hostName;
+    int m_port;
+    
+    void connectFilterToHost();
+
 public slots:
 /**
  * @brief      Do not call this function.
  */
     void imageRetrieved(void);
+    
+    void setHostName(const QString & hostName);
+    QString hostName() const;
+    
+    void setTcpPort(int tcpPortNumber);
+    int tcpPortNumber();
     
 public:
 	/**<
@@ -42,6 +59,8 @@ public:
     //Retrieve Image 
     Q_INVOKABLE void retrieveImage(QObject * qItem);
 
+    
+    
     
 };
 
