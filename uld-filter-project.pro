@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += multimedia quick core
+QT       += multimedia quick core widgets
 
 QT       -= gui
 
@@ -13,10 +13,13 @@ TEMPLATE = lib
 
 DEFINES += ULDFILTERPROJECT_LIBRARY
 
-SOURCES += uldfilterproject.cpp
+SOURCES += uldfilterproject.cpp \
+    uldsocket.cpp
 
 HEADERS += uldfilterproject.h\
-        uld-filter-project_global.h
+        uld-filter-project_global.h \
+    uldsocket.h \
+    qobject__.h
 
 unix {
     target.path = /usr/lib

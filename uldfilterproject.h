@@ -7,15 +7,16 @@
 #include <QSharedPointer>
 #include <QQuickItemGrabResult>
 
+#include <QTCPSocket>
 #include <QQueue>
 
 #include "uld-filter-project_global.h"
-
+#include "uldsocket.h"
 
 /**
  * @brief      This class recieves grabs an image (texture) wrapping a QML item rectangle. And sends it to a file, socket, pipe etc.  
  */
-class ULDFILTERPROJECTSHARED_EXPORT Uldfilterproject : public QObject
+class ULDFILTERPROJECTSHARED_EXPORT Uldfilterproject : public QObject__
 {
     Q_OBJECT
 
@@ -27,35 +28,42 @@ class ULDFILTERPROJECTSHARED_EXPORT Uldfilterproject : public QObject
  */
     
     QSharedPointer<QQuickItemGrabResult> m_pGrab;
-    QQueue<QImage> iQ;
-    bool m_connected;
     
-    QString m_hostName;
-    int m_port;
+    struct {
+        QString m_hostName;
+        quint16 m_port;
+    }net;
+    
+    QThread m_thread;
+    UldWorker * m_worker;
     
     void connectFilterToHost();
-
+    
+signals:
+    void awakeWorker(QString hostname, quint16 portNumber);    
+    
 public slots:
 /**
  * @brief      Do not call this function.
  */
     void imageRetrieved(void);
+
     
+public:
     void setHostName(const QString & hostName);
     QString hostName() const;
     
-    void setTcpPort(int tcpPortNumber);
-    int tcpPortNumber();
+    void setTcpPort(quint16 tcpPortNumber);
+    int tcpPort();
     
-public:
+    
 	/**<
 	 * @brief      Constructor of the Uploaderfilter
 	 *
 	 * @param      parent  The parent
 	 */
     Uldfilterproject(QObject * parent = Q_NULLPTR);
-    //QVideoFilterRunnable * createFilterRunnable() Q_DECL_OVERRIDE;
-
+    
     //Retrieve Image 
     Q_INVOKABLE void retrieveImage(QObject * qItem);
 

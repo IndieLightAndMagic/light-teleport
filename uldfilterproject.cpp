@@ -1,47 +1,54 @@
 #include "uldfilterproject.h"
-#include <QString>
 #include <QDebug>
 #include <QQuickItem>
 
 
-
 Uldfilterproject::Uldfilterproject(QObject* parent) : 
-    QObject(parent),
+    QObject__(parent),
     m_pGrab(nullptr),
-    m_connected(false),
-    m_port(0)
+    net({"192.168.1.5",8989}),
+    m_worker(new UldWorker())
 {
-    qDebug() << "Hello World" ;
+    
+    /* Change worker threads */
+    m_worker->moveToThread(&m_thread);
+
+    /* Now Connect signals, with a queue: why? this object and m_worker live in different threads now :) */
+    connect(this,&Uldfilterproject::awakeWorker,m_worker,&UldWorker::uploadStart_WORKER,Qt::QueuedConnection);
+    
+    /*Start the thread */    
+    m_thread.start();
+    
+    /* Start */
+    emit awakeWorker(net.m_hostName,net.m_port);
+    
+    
+    
+    
+    
+    
 }
+
+
 void Uldfilterproject::imageRetrieved(){
     
-    qDebug()<<"Signal Arrived! ";
     auto grabResult = qobject_cast<QQuickItemGrabResult*>(sender());
     if (grabResult){
         
+        qDebug()<<"Grabbed";
         const QImage img =  grabResult -> image();
-        qDebug()<<"Image Grabbed: "<<img;
-        qDebug()<<"Image Size: "<<img.size();
-        grabResult->saveToFile("dummyfile.png");
-        
-        
+        m_worker->imagePush(img);
         
     } else {
-        
         qDebug()<<"Not Grabbed!";
-    
     }
     
 }
 
 void Uldfilterproject::retrieveImage(QObject * qItem){
     
-    qDebug()<<qItem;
     auto itm = qobject_cast<QQuickItem*>(qItem);
-    
     m_pGrab = itm  -> grabToImage();
-    qDebug()<<m_pGrab; 
-    
     connect(
                 m_pGrab.data(),
                 &QQuickItemGrabResult::ready,
@@ -53,36 +60,32 @@ void Uldfilterproject::retrieveImage(QObject * qItem){
 
 void Uldfilterproject::setHostName(const QString & hostName){
     
-    m_hostName = hostName;
+    net.m_hostName = hostName;
     
 }
 QString Uldfilterproject::hostName()const{
-    return m_hostName;
+    return net.m_hostName;
 }
 
-void Uldfilterproject::setTcpPort(int tcpPortNumber){
+void Uldfilterproject::setTcpPort(quint16 tcpPortNumber){
     
-    m_port = tcpPortNumber;
+    net.m_port = tcpPortNumber;
     
 }
 
-int Uldfilterproject::tcpPortNumber(){
+int Uldfilterproject::tcpPort(){
     
-    return m_port;
+    return net.m_port;
     
 }
 
 void Uldfilterproject::connectFilterToHost(){
     
     
-    qDebug()<<"Connecting Filter to:"<<m_hostName<<"@"<<m_port;
+    qDebug()<<"Connecting Filter to:"<<net.m_hostName<<"@"<<net.m_port;
     
     
     
 }
-
-/*QVideoFilterRunnable * Uldfilterproject::createFilterRunnable(){
-    return new UldFilterWorker(this);
-}*/
 
 
