@@ -4,7 +4,7 @@
 #include <QTimer>
 UldWorker::UldWorker(QObject* parent):QObject__(parent),
     m_alive(false),
-    t(new QTimer(this))
+    m_tmr(new QTimer(this))
     
 {
     
@@ -26,10 +26,10 @@ void UldWorker::uploadStart_WORKER(QString hostName, quint16 portNumber){
     connect(s,&QAbstractSocket::stateChanged,this,&UldWorker::socketStateDisplay);
     
     /* Timer dot */
-    connect(t,SIGNAL(timeout()),this,SLOT(dotDisplay()));
-    t->start(10000);
+    connect(m_tmr,SIGNAL(timeout()),this,SLOT(dotDisplay()));
+    m_tmr->start(10000);
     
-    qDebug()<<"t thread is:     "<<t->thread();
+    qDebug()<<"t thread is:     "<<m_tmr->thread();
     qDebug()<<"this thread is:  "<<this->thread();
     while (m_alive){
         QAbstractSocket::SocketState ss;
@@ -43,13 +43,13 @@ void UldWorker::uploadStart_WORKER(QString hostName, quint16 portNumber){
                 //s->waitForConnected();
                 //t->setInterval(1000);
                 //t->setSingleShot(false);
-                qDebug()<<t->remainingTime();
+                qDebug()<<m_tmr->remainingTime();
                 continue;
                 
             } else if (ss == QAbstractSocket::ConnectingState){
             } else if (ss == QAbstractSocket::ConnectedState){
                 /* Stop pending connection timer */                
-                t->stop();
+                m_tmr->stop();
                 
                 
                 /* Si el socket está conectado, enviar la información */

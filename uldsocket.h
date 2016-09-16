@@ -30,7 +30,7 @@ private slots:
 private:
     QQueue<QImage> m_qi;
     bool m_alive;
-    QTimer * t;
+    QTimer * m_tmr;
 };
 
 
