@@ -13,10 +13,11 @@ class UldWorker:public QObject__{
 public:
     UldWorker(QObject * parent = 0);
     ~UldWorker(){}
+    int msRetryTime;
 
 signals:
     void uploadFinished();    
-    
+    void connectionErrorCheckConnectivity();
     
     
 public slots:

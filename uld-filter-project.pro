@@ -14,12 +14,14 @@ TEMPLATE = lib
 DEFINES += ULDFILTERPROJECT_LIBRARY
 
 SOURCES += uldfilterproject.cpp \
-    uldsocket.cpp
+    uldsocket.cpp \
+    uldhelper.cpp
 
 HEADERS += uldfilterproject.h\
         uld-filter-project_global.h \
     uldsocket.h \
-    qobject__.h
+    qobject__.h \
+    uldhelper.h
 
 unix {
     target.path = /usr/lib

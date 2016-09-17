@@ -1,8 +1,10 @@
 #include "uldsocket.h"
+#include "uldhelper.h"
 #include <QTcpSocket>
 #include <QApplication>
 #include <QTimer>
 UldWorker::UldWorker(QObject* parent):QObject__(parent),
+    msRetryTime(2000),
     m_alive(false),
     m_tmr(new QTimer(this))
     
@@ -12,6 +14,16 @@ UldWorker::UldWorker(QObject* parent):QObject__(parent),
 }
 
 void UldWorker::uploadStart_WORKER(QString hostName, quint16 portNumber){
+    
+    typedef enum {
+        WAIT,
+        GO
+    }WORKERSTATE;
+    
+    WORKERSTATE workerState = GO;
+    
+    
+    
     
     qDebug()<<"Connection Manager Thread";
     m_alive = true;
@@ -27,26 +39,46 @@ void UldWorker::uploadStart_WORKER(QString hostName, quint16 portNumber){
     
     /* Timer dot */
     connect(m_tmr,SIGNAL(timeout()),this,SLOT(dotDisplay()));
-    m_tmr->start(10000);
     
-    qDebug()<<"t thread is:     "<<m_tmr->thread();
-    qDebug()<<"this thread is:  "<<this->thread();
+    qDebug()<<"socket thread is:"<<s->thread();
+    qDebug()<<"timer thread is: "<<m_tmr->thread();
+    qDebug()<<"worker thread is:"<<this->thread();
+    
+    
+    
     while (m_alive){
         QAbstractSocket::SocketState ss;
         ss = s->state();
+        if (workerState == WAIT){
+            if (!m_tmr->remainingTime()){
+                workerState = GO;
+                m_tmr->stop();
+            } else {
+                continue;
+            }
+            
+        }
+        
         if (!m_qi.isEmpty()){
             /* Si hay al menos una imagen */
             if (ss == QAbstractSocket::UnconnectedState){
                 /* Si no está conectado el socket Conectarse */
-                //qDebug()<<"Attempting Connection";
+                qInfo()<<"Attempting Connection @:"<<hostName<<":"<<portNumber;
                 s->connectToHost(hostName,portNumber);
-                //s->waitForConnected();
-                //t->setInterval(1000);
-                //t->setSingleShot(false);
-                qDebug()<<m_tmr->remainingTime();
+                if (s->waitForConnected() == false){
+                    workerState = WAIT;
+                    qCritical()<<"Connection Failed... retrying in "<<float(msRetryTime)/1000<<" secs...";
+                    m_tmr->stop();
+                    m_tmr->start(msRetryTime);
+                }
                 continue;
                 
             } else if (ss == QAbstractSocket::ConnectingState){
+                if (!m_tmr->remainingTime()){
+                    dotDisplay();
+                    m_tmr->start(1000);
+                }
+                
             } else if (ss == QAbstractSocket::ConnectedState){
                 /* Stop pending connection timer */                
                 m_tmr->stop();
@@ -55,7 +87,11 @@ void UldWorker::uploadStart_WORKER(QString hostName, quint16 portNumber){
                 /* Si el socket está conectado, enviar la información */
                 /* pop from q and sent Information */
                 QImage i = m_qi.dequeue();
+                UldHelper::serializeQImageAndSend(s,i);
+                
+
                 continue;
+            
             } else {
                 /* Socket is doing whatever I don't care */
                 continue;
@@ -85,8 +121,8 @@ void UldWorker::setAlive(bool alive){
 }
 
 void UldWorker::errorNotify(QAbstractSocket::SocketError error){
-    qDebug()<<"Goal!!!!";
-    qDebug()<<"Error: "<<error;
+    qWarning()<<"Error: "<<error;
+    emit connectionErrorCheckConnectivity();
 }
 void UldWorker::socketStateDisplay(QAbstractSocket::SocketState state){
     qDebug()<<"Socket State: "<<state;
