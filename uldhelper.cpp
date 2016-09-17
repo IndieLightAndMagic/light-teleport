@@ -1,6 +1,7 @@
 #include "uldhelper.h"
 #include <QDebug>
 #include <QDateTime>
+#include <QBuffer>
 UldHelper::UldHelper()
 {
     
@@ -30,16 +31,28 @@ QByteArray UldHelper::formatMessage(char * buff){
     return ba;
     
 }
-void UldHelper::serializeQImageAndSend(QAbstractSocket * as,const QImage &i){
+void UldHelper::serializeQImageAndSend(QAbstractSocket * as,QImage &img){
+    
+    /* Put some metainformation in the PNG */
+    QDateTime dt = QDateTime::currentDateTimeUtc();
+    QString pngFileName("_"+dt.toString("yyyyMMdd_HHmmss_zzz_t")+".png");
+    qDebug()<<"FileName is:"<<pngFileName;
+    img.setText("Filename",pngFileName);
+    
+    /* Save a PNG file on RAM and upload it */
+    QByteArray pngChunk;
+    QBuffer pngChunkBuffer(&pngChunk);
+    pngChunkBuffer.open(QIODevice::WriteOnly);
+    img.save(&pngChunkBuffer,"PNG");
+    qint64 bWritten = as->write(pngChunk);
+    qInfo()<<"Buffered PNG Size:"<<pngChunk.size();
+    img.save(pngFileName,"PNG");
     
     
     
-    char msg[] = "Hello, I am not the client";
-    QByteArray bmsg = formatMessage(msg);
-    qint64 bWritten = as->write(bmsg);
-    
+    /* This did not work */
     qInfo()<<"Bytes Written:"<<bWritten;
-    qInfo()<<as->waitForBytesWritten(bmsg.size());
+    qInfo()<<as->waitForBytesWritten(pngChunk.size());
     
     
 }

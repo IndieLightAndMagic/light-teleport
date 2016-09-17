@@ -2,6 +2,7 @@
 #define ULDHELPER_H
 
 #include <QObject>
+#include <QImage>
 #include <QAbstractSocket>
 class UldHelper
 {
@@ -9,7 +10,7 @@ public:
     UldHelper();
     static QByteArray formatMessage(char * buff);
     static void freeFormatMessage(char*);
-    static void serializeQImageAndSend(QAbstractSocket * as,const QImage &i);
+    static void serializeQImageAndSend(QAbstractSocket * as,QImage &i);
 };
 
 #endif // ULDHELPER_H
