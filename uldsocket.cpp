@@ -12,23 +12,7 @@ UldWorker::UldWorker(QObject* parent):QObject__(parent),
     
     
 }
-
-void UldWorker::uploadStart_WORKER(QString hostName, quint16 portNumber){
-    
-    typedef enum {
-        WAIT,
-        GO
-    }WORKERSTATE;
-    
-    WORKERSTATE workerState = GO;
-    
-    
-    
-    
-    qDebug()<<"Connection Manager Thread";
-    m_alive = true;
-    
-    QTcpSocket * s = new QTcpSocket();
+void UldWorker::uploadStartSetup(QTcpSocket * s){
     
     /* Error Handling */
     typedef void(QAbstractSocket::*QAbstractSocketError)(QAbstractSocket::SocketError);
@@ -43,10 +27,27 @@ void UldWorker::uploadStart_WORKER(QString hostName, quint16 portNumber){
     qDebug()<<"socket thread is:"<<s->thread();
     qDebug()<<"timer thread is: "<<m_tmr->thread();
     qDebug()<<"worker thread is:"<<this->thread();
+}
+
+void UldWorker::uploadStart_WORKER(QString hostName, quint16 portNumber){
+    
+    typedef enum {
+        WAIT,
+        GO
+    }WORKERSTATE;
+    
+    WORKERSTATE workerState = GO;
     
     
     
+    
+    
+    QTcpSocket * s = new QTcpSocket();
+    uploadStartSetup(s);
+    
+    m_alive = true;
     while (m_alive){
+        
         QAbstractSocket::SocketState ss;
         ss = s->state();
         if (workerState == WAIT){

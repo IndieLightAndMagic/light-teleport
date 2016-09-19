@@ -19,16 +19,18 @@ signals:
     void uploadFinished();    
     void connectionErrorCheckConnectivity();
     
-    
 public slots:
     void uploadStart_WORKER(QString hostName, quint16 portNumber);
     void imagePush(const QImage & i);
     void setAlive(bool alive);
+
 private slots:
     void errorNotify(QAbstractSocket::SocketError error);
     void socketStateDisplay(QAbstractSocket::SocketState state);
     void dotDisplay();
+
 private:
+    void uploadStartSetup(QTcpSocket * s);
     QQueue<QImage> m_qi;
     bool m_alive;
     QTimer * m_tmr;
