@@ -21,19 +21,36 @@ signals:
     
 public slots:
     void uploadStart_WORKER(QString hostName, quint16 portNumber);
-    void imagePush(const QImage & i);
+    void imagePush(QImage & i);
     void setAlive(bool alive);
 
 private slots:
+    void bytesWritten(qint64 bytes);
     void errorNotify(QAbstractSocket::SocketError error);
     void socketStateDisplay(QAbstractSocket::SocketState state);
     void dotDisplay();
 
 private:
     void uploadStartSetup(QTcpSocket * s);
-    QQueue<QImage> m_qi;
+    QQueue<QByteArray> m_qi;
     bool m_alive;
     QTimer * m_tmr;
+    
+    typedef enum {
+        WAIT,
+        GO,
+        UPLOADING,
+        RESUME,
+    }WORKERSTATE;
+    
+    WORKERSTATE m_workerState;
+    
+    
+    struct {
+        qint64 tx_size;
+        qint64 tx_done;
+    }txStatus;
+    
 };
 
 

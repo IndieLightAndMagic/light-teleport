@@ -1,17 +1,34 @@
 #include "uldsocket.h"
 #include "uldhelper.h"
 #include <QTcpSocket>
+#include <QBuffer>
 #include <QApplication>
 #include <QTimer>
+
 UldWorker::UldWorker(QObject* parent):QObject__(parent),
     msRetryTime(2000),
     m_alive(false),
     m_tmr(new QTimer(this))
-    
+  
 {
     
     
 }
+
+void UldWorker::bytesWritten(qint64 bytes){
+    
+    txStatus.tx_done += bytes;
+    float d = txStatus.tx_done;
+    float s = txStatus.tx_size;
+    
+    d = d*100;
+    d = d/s;
+    
+    qInfo()<<"Bytes Written: "<<txStatus.tx_done<<" / "<<txStatus.tx_size<< " ["<<d<<"%]";
+    
+    m_workerState = RESUME;
+}
+
 void UldWorker::uploadStartSetup(QTcpSocket * s){
     
     /* Error Handling */
@@ -20,6 +37,10 @@ void UldWorker::uploadStartSetup(QTcpSocket * s){
     
     /* State changed */
     connect(s,&QAbstractSocket::stateChanged,this,&UldWorker::socketStateDisplay);
+    
+    /* Bytes written */
+    connect(s,&QIODevice::bytesWritten,this,&UldWorker::bytesWritten);
+    
     
     /* Timer dot */
     connect(m_tmr,SIGNAL(timeout()),this,SLOT(dotDisplay()));
@@ -31,15 +52,8 @@ void UldWorker::uploadStartSetup(QTcpSocket * s){
 
 void UldWorker::uploadStart_WORKER(QString hostName, quint16 portNumber){
     
-    typedef enum {
-        WAIT,
-        GO
-    }WORKERSTATE;
     
-    WORKERSTATE workerState = GO;
-    
-    
-    
+    m_workerState = GO;
     
     
     QTcpSocket * s = new QTcpSocket();
@@ -47,74 +61,115 @@ void UldWorker::uploadStart_WORKER(QString hostName, quint16 portNumber){
     
     m_alive = true;
     while (m_alive){
-        
+        QByteArray ba;
         QAbstractSocket::SocketState ss;
         ss = s->state();
-        if (workerState == WAIT){
+        if (m_workerState == WAIT){
             if (!m_tmr->remainingTime()){
-                workerState = GO;
+                m_workerState = GO;
                 m_tmr->stop();
             } else {
                 continue;
             }
             
         }
-        
-        if (!m_qi.isEmpty()){
-            /* Si hay al menos una imagen */
-            if (ss == QAbstractSocket::UnconnectedState){
-                /* Si no está conectado el socket Conectarse */
-                qInfo()<<"Attempting Connection @:"<<hostName<<":"<<portNumber;
-                s->connectToHost(hostName,portNumber);
-                if (s->waitForConnected() == false){
-                    workerState = WAIT;
-                    qCritical()<<"Connection Failed... retrying in "<<float(msRetryTime)/1000<<" secs...";
+        if (m_workerState == UPLOADING){
+            /* It's uploading */
+            continue;
+        }
+        if (m_workerState == RESUME){
+            
+            /* Upload finished */
+            /* Check how much info was uploaded */
+            if (txStatus.tx_done < txStatus.tx_size){
+                m_workerState = UPLOADING;
+                UldHelper::send(s,ba,txStatus.tx_size,txStatus.tx_done);
+                continue;
+            }else {
+                m_workerState = GO;
+            }
+        }
+        if (m_workerState == GO){
+            if (!m_qi.isEmpty()){
+                /* Si hay al menos una imagen */
+                if (ss == QAbstractSocket::UnconnectedState){
+                    /* Si no está conectado el socket Conectarse */
+                    qInfo()<<"Attempting Connection @:"<<hostName<<":"<<portNumber;
+                    s->connectToHost(hostName,portNumber);
+                    if (s->waitForConnected() == false){
+                        m_workerState = WAIT;
+                        qCritical()<<"Connection Failed... retrying in "<<float(msRetryTime)/1000<<" secs...";
+                        m_tmr->stop();
+                        m_tmr->start(msRetryTime);
+                    }
+                    continue;
+                    
+                } else if (ss == QAbstractSocket::ConnectingState){
+                    if (!m_tmr->remainingTime()){
+                        dotDisplay();
+                        m_tmr->start(1000);
+                    }
+                    
+                } else if (ss == QAbstractSocket::ConnectedState){
+                    
+                    /* Stop pending connection timer */                
                     m_tmr->stop();
-                    m_tmr->start(msRetryTime);
+                    
+                    
+                    /* Si el socket está conectado, enviar la información */
+                    /* pop from q */
+                    ba = m_qi.dequeue();
+                    
+                    /* Add to the byte array additional information */
+                    
+                    /* Send some pre-data */
+                    qDebug()<<"Image Size: "<<ba.size();
+                    UldHelper::serialize(ba);
+                    qDebug()<<"With Serialized Info:"<<ba.size();
+                    
+                    
+                    /* Configure the status */
+                    txStatus.tx_size = ba.size();
+                    txStatus.tx_done = 0;
+                    
+                    /* We Sent and enter sent state */
+                    m_workerState = UPLOADING;
+                    UldHelper::send(s,ba,txStatus.tx_size);
+                    
+                    
+                    continue;
+                    
+                } else {
+                    /* Socket is doing whatever I don't care */
+                    continue;
                 }
-                continue;
                 
-            } else if (ss == QAbstractSocket::ConnectingState){
-                if (!m_tmr->remainingTime()){
-                    dotDisplay();
-                    m_tmr->start(1000);
-                }
-                
-            } else if (ss == QAbstractSocket::ConnectedState){
-                /* Stop pending connection timer */                
-                m_tmr->stop();
-                
-                
-                /* Si el socket está conectado, enviar la información */
-                /* pop from q and sent Information */
-                QImage i = m_qi.dequeue();
-                UldHelper::serializeQImageAndSend(s,i);
-                
-
-                continue;
-            
             } else {
-                /* Socket is doing whatever I don't care */
-                continue;
-            }
+                
+                if (s->state() == QAbstractSocket::ConnectedState){
+                    /* So there's no workload, free connection */ 
+                    s->disconnectFromHost();    
+                    continue;
+                }
+            } 
             
-        } else {
-            
-            if (s->state() == QAbstractSocket::ConnectedState){
-                /* So there's no workload, free connection */ 
-                s->disconnectFromHost();    
-                continue;
-            }
         }
     }
     
     s->disconnectFromHost();
     delete s;
-
-}
-void UldWorker::imagePush(const QImage &i){
     
-    m_qi.enqueue(i);
+}
+void UldWorker::imagePush(QImage &i){
+    
+    /* Sometime in the near future set a QJson Object Along with PNG file */
+    //i=i.scaled(256,256);    
+    /* Convert image to buffered RAM file */
+    QByteArray pngChunk;
+    QBuffer pngChunkBuffer(&pngChunk);
+    pngChunkBuffer.open(QIODevice::WriteOnly);
+    i.save(&pngChunkBuffer,"PNG");
+    m_qi.enqueue(pngChunk);
     
 }
 void UldWorker::setAlive(bool alive){
