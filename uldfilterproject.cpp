@@ -36,7 +36,7 @@ void Uldfilterproject::imageRetrieved(){
     if (grabResult){
         
         qDebug()<<"Grabbed";
-        const QImage img =  grabResult -> image();
+        QImage img =  grabResult -> image();
         m_worker->imagePush(img);
         
     } else {

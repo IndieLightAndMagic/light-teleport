@@ -2,15 +2,20 @@
 #define ULDHELPER_H
 
 #include <QObject>
-#include <QImage>
 #include <QAbstractSocket>
+
+#define ULD_HELPER_MAX_CHUNK_SIZE 131768
+
+
 class UldHelper
 {
+    
 public:
     UldHelper();
     static QByteArray formatMessage(char * buff);
-    static void freeFormatMessage(char*);
-    static void serializeQImageAndSend(QAbstractSocket * as,QImage &i);
+    
+    static void send(QAbstractSocket * as, QByteArray &pngChunk,qint64 maxSize, qint64 offsetIndex=0);
+    static void serialize(QByteArray &ba);
 
     static QByteArray swapEndianness(int);
 

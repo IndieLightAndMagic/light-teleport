@@ -41,37 +41,30 @@ QByteArray UldHelper::formatMessage(char * buff){
     return ba;
     
 }
+void UldHelper::serialize(QByteArray & pngChunk){
 
-void UldHelper::serializeQImageAndSend(QAbstractSocket * as,
-                                       QImage &img){
-    
-    img = img.scaled(204,204);
-    
-    /* Put some metainformation in the PNG */
-    QDateTime dt = QDateTime::currentDateTimeUtc();
-    
-    QString pngFileName("_"+dt.toString("yyyyMMdd_HHmmss_zzz_t")+".png");
-    qDebug()<<"FileName is:"<<pngFileName;
-    img.setText("Filename",pngFileName);
-    
     /* Save a PNG file on RAM and upload it */
-    QByteArray pngChunk;
-    QBuffer pngChunkBuffer(&pngChunk);
-    pngChunkBuffer.open(QIODevice::WriteOnly);
-    img.save(&pngChunkBuffer,"PNG");
     int pngChunkSize = pngChunk.size();
-    
-    
     
     qInfo()<<"Buffered PNG Size:"<<pngChunk.size();
     pngChunk = swapEndianness(pngChunkSize)+ pngChunk;
     
-    qint64 bWritten = as->write(pngChunk);
+}
+
+void UldHelper::send(QAbstractSocket * as, QByteArray &pngChunk, qint64 maxSize, qint64 offsetIndex){
+    
+    char * data = pngChunk.data();
+    qInfo()<<"OffsetIndex is:"<<offsetIndex;
+    
+    qint64 stripSize = maxSize-offsetIndex;
+    qint64 bWritten = as->write(&(data[offsetIndex]),stripSize);
+    
     //as->flush();
     
     /* This did not work */
-    qInfo()<<"Bytes Written:"<<bWritten;
-    qInfo()<<as->waitForBytesWritten(pngChunk.size());
-    
+    qInfo()<<"Write Functions says bytes written:"<<bWritten;
+    bool writeOperationResult=as->waitForBytesWritten(-1);
+    if (writeOperationResult) qDebug()<<"writeOperation Ok";
+    else qCritical()<<"writeOperation NOT Ok";
     
 }
