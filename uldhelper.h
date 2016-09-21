@@ -13,7 +13,6 @@ class UldHelper
     
 public:
     UldHelper();
-    static QByteArray formatMessage(char * buff);
     
     static void send(QAbstractSocket * as, QByteArray &pngChunk,qint64 maxSize, qint64 offsetIndex=0);
     
