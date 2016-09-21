@@ -1,7 +1,12 @@
+
 #include "uldhelper.h"
 #include <QDebug>
 #include <QDateTime>
 #include <QBuffer>
+#include <QAbstractSocket>
+#include <QNetworkInterface>
+#include <QJsonDocument>
+#include <QJsonObject>
 UldHelper::UldHelper()
 {
     
@@ -41,6 +46,16 @@ QByteArray UldHelper::formatMessage(char * buff){
     return ba;
     
 }
+void UldHelper::jsonize(QByteArray & ba, QJsonObject & jo){
+    
+    
+    QJsonDocument jod(jo);
+    QByteArray jodba = jod.toJson(QJsonDocument::Compact);
+    serialize(jodba);
+    ba = jodba + ba;
+        
+}
+
 void UldHelper::serialize(QByteArray & pngChunk){
 
     /* Save a PNG file on RAM and upload it */
@@ -66,5 +81,35 @@ void UldHelper::send(QAbstractSocket * as, QByteArray &pngChunk, qint64 maxSize,
     bool writeOperationResult=as->waitForBytesWritten(-1);
     if (writeOperationResult) qDebug()<<"writeOperation Ok";
     else qCritical()<<"writeOperation NOT Ok";
+    
+}
+QJsonObject UldHelper::macAndTimeStampJson(QAbstractSocket * as){
+    
+    QJsonObject o;
+    //QList<QNetworkInterface> il = QNetworkInterface::allInterfaces();
+    QList<QHostAddress> hl = QNetworkInterface::allAddresses();
+    
+    QHostAddress localAddress = as -> localAddress();
+    
+    QString hadd;
+    int index = 0; 
+    for (QList<QHostAddress>::iterator host = hl.begin(); host!= hl.end(); host++){
+        if (host[0] == localAddress){
+            QNetworkInterface qni = QNetworkInterface::interfaceFromIndex(index);
+            hadd = qni.hardwareAddress();
+            QStringList octets = hadd.split(":");
+            hadd = octets.join("");
+        
+        }
+        index++;
+    }
+    o["hwAddr"] = hadd;
+    QString dtString = QDateTime::currentDateTimeUtc().toString("yy.MM.dd.HH.mm.ss.zzz");
+    QStringList dtStringList = dtString.split(".");
+    dtString = dtStringList.join("");
+    o["tmStmp"] = dtString;
+    
+    return o;
+    
     
 }

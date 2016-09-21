@@ -123,7 +123,9 @@ void UldWorker::uploadStart_WORKER(QString hostName, quint16 portNumber){
                     /* Add to the byte array additional information */
                     
                     /* Send some pre-data */
+                    QJsonObject o = UldHelper::macAndTimeStampJson(s);
                     qDebug()<<"Image Size: "<<ba.size();
+                    UldHelper::jsonize(ba,o);
                     UldHelper::serialize(ba);
                     qDebug()<<"With Serialized Info:"<<ba.size();
                     
@@ -132,10 +134,11 @@ void UldWorker::uploadStart_WORKER(QString hostName, quint16 portNumber){
                     txStatus.tx_size = ba.size();
                     txStatus.tx_done = 0;
                     
-                    /* We Sent and enter sent state */
+                    /* We Seng and enter UPLOADING state */
                     m_workerState = UPLOADING;
                     UldHelper::send(s,ba,txStatus.tx_size);
                     
+                   
                     
                     continue;
                     
