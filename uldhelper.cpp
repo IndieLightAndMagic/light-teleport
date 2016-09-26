@@ -77,11 +77,11 @@ QJsonObject UldHelper::macAndTimeStampJson(QAbstractSocket * as){
         }
         index++;
     }
-    o["hwAddr"] = hadd;
+    o["hwAdd"] = hadd;
     QString dtString = QDateTime::currentDateTimeUtc().toString("yy.MM.dd.HH.mm.ss.zzz");
     QStringList dtStringList = dtString.split(".");
     dtString = dtStringList.join("");
-    o["tmStmp"] = dtString;
+    o["tsUtc"] = dtString;
     
     return o;
     

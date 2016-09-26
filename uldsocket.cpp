@@ -80,12 +80,14 @@ void UldWorker::uploadStart_WORKER(QString hostName, quint16 portNumber){
         if (m_workerState == RESUME){
             
             /* Upload finished */
-            /* Check how much info was uploaded */
+            /* Check how much info was uploaded, tx_done is the size of the info already sent, tx_size the actual size of the info (bytes)*/
             if (txStatus.tx_done < txStatus.tx_size){
                 m_workerState = UPLOADING;
                 UldHelper::send(s,ba,txStatus.tx_size,txStatus.tx_done);
                 continue;
             }else {
+                /* Clear the information */
+                ba.clear();
                 m_workerState = GO;
             }
         }
@@ -105,6 +107,7 @@ void UldWorker::uploadStart_WORKER(QString hostName, quint16 portNumber){
                     continue;
                     
                 } else if (ss == QAbstractSocket::ConnectingState){
+                    
                     if (!m_tmr->remainingTime()){
                         dotDisplay();
                         m_tmr->start(1000);
@@ -137,8 +140,6 @@ void UldWorker::uploadStart_WORKER(QString hostName, quint16 portNumber){
                     /* We Seng and enter UPLOADING state */
                     m_workerState = UPLOADING;
                     UldHelper::send(s,ba,txStatus.tx_size);
-                    
-                   
                     
                     continue;
                     
