@@ -122,6 +122,7 @@ void UldWorker::uploadStart_WORKER(QString hostName, quint16 portNumber){
                     /* Si el socket está conectado, enviar la información */
                     /* pop from q */
                     ba = m_qi.dequeue();
+                    //ba.clear();
                     /* Add to the byte array additional information */
                     
                     /* Send some pre-data */
@@ -143,6 +144,7 @@ void UldWorker::uploadStart_WORKER(QString hostName, quint16 portNumber){
                     
                 } else {
                     /* Socket is doing whatever I don't care */
+                    
                     continue;
                 }
                 
@@ -150,7 +152,10 @@ void UldWorker::uploadStart_WORKER(QString hostName, quint16 portNumber){
                 
                 if (s->state() == QAbstractSocket::ConnectedState){
                     /* So there's no workload, free connection */ 
-                    s->disconnectFromHost();    
+                    qDebug()<<"Closing client";
+                    s->disconnectFromHost();
+                    s->waitForDisconnected(1000);
+                    s->close();
                     continue;
                 }
             } 
