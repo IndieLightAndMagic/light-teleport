@@ -122,14 +122,12 @@ void UldWorker::uploadStart_WORKER(QString hostName, quint16 portNumber){
                     /* Si el socket está conectado, enviar la información */
                     /* pop from q */
                     ba = m_qi.dequeue();
-                    
                     /* Add to the byte array additional information */
                     
                     /* Send some pre-data */
                     QJsonObject o = UldHelper::macAndTimeStampJson(s);
                     qDebug()<<"Image Size: "<<ba.size();
                     UldHelper::jsonize(ba,o);
-                    UldHelper::serialize(ba);
                     qDebug()<<"With Serialized Info:"<<ba.size();
                     
                     

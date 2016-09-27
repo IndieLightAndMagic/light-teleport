@@ -31,8 +31,10 @@ void UldHelper::jsonize(QByteArray & ba, QJsonObject & jo){
     
     QJsonDocument jod(jo);
     QByteArray jodba = jod.toJson(QJsonDocument::Compact);
+    qDebug()<<"Json size is: "<<jodba.size();
     serialize(jodba);
     ba = jodba + ba;
+    serialize(ba);
         
 }
 
