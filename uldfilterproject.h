@@ -10,13 +10,12 @@
 #include <QTCPSocket>
 #include <QQueue>
 
-#include "uld-filter-project_global.h"
 #include "uldsocket.h"
 
 /**
  * @brief      This class recieves grabs an image (texture) wrapping a QML item rectangle. And sends it to a file, socket, pipe etc.  
  */
-class ULDFILTERPROJECTSHARED_EXPORT Uldfilterproject : public QObject__
+class Uldfilterproject : public QObject__
 {
     Q_OBJECT
 
@@ -42,7 +41,7 @@ class ULDFILTERPROJECTSHARED_EXPORT Uldfilterproject : public QObject__
 signals:
     void awakeWorker(QString hostname, quint16 portNumber);    
     
-public slots:
+private slots:
 /**
  * @brief      Do not call this function.
  */

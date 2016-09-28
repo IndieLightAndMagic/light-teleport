@@ -47,6 +47,7 @@ void Uldfilterproject::imageRetrieved(){
 
 void Uldfilterproject::retrieveImage(QObject * qItem){
     
+    qDebug()<<"RetrieveImage:"<<qItem;
     auto itm = qobject_cast<QQuickItem*>(qItem);
     m_pGrab = itm  -> grabToImage();
     connect(
