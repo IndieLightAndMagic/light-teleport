@@ -22,11 +22,6 @@ Uldfilterproject::Uldfilterproject(QObject* parent) :
     /* Start */
     emit awakeWorker(net.m_hostName,net.m_port);
     
-    
-    
-    
-    
-    
 }
 
 
@@ -36,7 +31,7 @@ void Uldfilterproject::imageRetrieved(){
     if (grabResult){
         
         qDebug()<<"Grabbed";
-        QImage img =  grabResult -> image();
+        QImage img =  grabResult->image().copy(m_rSelection);
         m_worker->imagePush(img);
         
     } else {
@@ -45,17 +40,20 @@ void Uldfilterproject::imageRetrieved(){
     
 }
 
-void Uldfilterproject::retrieveImage(QObject * qItem){
+bool Uldfilterproject::retrieveSubImage(QObject * qItem, int initial_x, int initial_y, int final_x, int final_y){
     
     qDebug()<<"RetrieveImage:"<<qItem;
     auto itm = qobject_cast<QQuickItem*>(qItem);
     m_pGrab = itm  -> grabToImage();
+    if (m_pGrab == NULL) return false;
+    m_rSelection = QRect(QPoint(initial_x,initial_y),QPoint(final_x,final_y));
     connect(
                 m_pGrab.data(),
                 &QQuickItemGrabResult::ready,
                 this,
                 &Uldfilterproject::imageRetrieved
                 );
+    return true;
     
 }
 

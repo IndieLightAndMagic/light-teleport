@@ -9,7 +9,7 @@
 
 #include <QTCPSocket>
 #include <QQueue>
-
+#include <QRect>
 #include "uldsocket.h"
 
 /**
@@ -35,6 +35,10 @@ class Uldfilterproject : public QObject__
     
     QThread m_thread;
     UldWorker * m_worker;
+    
+    /* Selection rectangle */    
+    QRect m_rSelection;
+    
     
     void connectFilterToHost();
     
@@ -64,8 +68,9 @@ public:
     Uldfilterproject(QObject * parent = Q_NULLPTR);
     
     //Retrieve Image 
-    Q_INVOKABLE void retrieveImage(QObject * qItem);
-
+    Q_INVOKABLE bool retrieveSubImage(QObject * qItem, int initial_x, int initial_y, int final_x, int final_y);
+    Q_INVOKABLE bool retrieveImage(QObject * qItem);
+    
     
     
     
