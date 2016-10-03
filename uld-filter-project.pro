@@ -15,13 +15,16 @@ DEFINES += ULDFILTERPROJECT_LIBRARY
 
 SOURCES += uldfilterproject.cpp \
     uldsocket.cpp \
-    uldhelper.cpp
+    uldhelper.cpp \
+    uldvideodec.cpp
 
 HEADERS += uldfilterproject.h\
         uld-filter-project_global.h \
     uldsocket.h \
     qobject__.h \
-    uldhelper.h
+    uldhelper.h \
+    uldvideodec.h \
+    uldvideodec_data.h
 
 unix {
     target.path = /usr/lib
