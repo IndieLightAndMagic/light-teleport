@@ -70,13 +70,20 @@ void qt_convert_NV21_to_ARGB32(const uchar * pinframe, uchar * poutframe, int wi
 
 uldvideodec::uldvideodec(){
     
+    qDebug()<<"Setting up decoding drivers";
+    
     m_yuvdecodedriver[QVideoFrame::Format_BGR32] = {qt_convert_BGR32_to_ARGB32, ULD_VIDEODEC_NONE};
     m_yuvdecodedriver[QVideoFrame::Format_NV12] =  {qt_convert_NV21_to_ARGB32, ULD_VIDEODEC_NV12};
     m_yuvdecodedriver[QVideoFrame::Format_NV21] =  {qt_convert_NV21_to_ARGB32, ULD_VIDEODEC_NV21};
     
 }
 
-QByteArray uldvideodec::toARGB32(QVideoFrame * fp){
+QImage uldvideodec::toARGB32(QVideoFrame * fp){
+    
+    if(!fp->isValid()){
+        qDebug()<<"Invalid QVideoFrame";
+        return QImage();
+    }
     
     int width = fp->width();
     int height = fp->height();
@@ -91,16 +98,16 @@ QByteArray uldvideodec::toARGB32(QVideoFrame * fp){
     uchar * prgb = reinterpret_cast<uchar*>(rgbBuffer.data()); 
     
     
+    /* Decode */
     m_yuvdecodedriver[fp->pixelFormat()].func(pyuv, prgb, width, height, m_yuvdecodedriver[fp->pixelFormat()].flag);        
     
     
     
     /* Create QImage */
-    
+    /* Encode in Qimage */
     QImage img = QImage(prgb,width,height,QImage::Format_ARGB32);
-    img.save("test","PNG",100);
     
-    return rgbBuffer;
+    return img;
     
 }
 void debugVideoFrameInfo(QVideoFrame  * fp, const QVideoSurfaceFormat &sf ){

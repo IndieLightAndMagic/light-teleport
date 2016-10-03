@@ -4,10 +4,10 @@
 
 
 Uldfilterproject::Uldfilterproject(QObject* parent) : 
-    QObject__(parent),
-    m_pGrab(nullptr),
+    QAbstractVideoFilter (parent),
     net({"192.168.1.5",8989}),
-    m_worker(new UldWorker())
+    m_worker(new UldWorker()),
+    m_grab({QRect(),false})
 {
     
     /* Change worker threads */
@@ -25,35 +25,12 @@ Uldfilterproject::Uldfilterproject(QObject* parent) :
 }
 
 
-void Uldfilterproject::imageRetrieved(){
-    
-    auto grabResult = qobject_cast<QQuickItemGrabResult*>(sender());
-    if (grabResult){
-        
-        qDebug()<<"Grabbed";
-        QImage img =  grabResult->image().copy(m_rSelection);
-        m_worker->imagePush(img);
-        
-    } else {
-        qDebug()<<"Not Grabbed!";
-    }
-    
-}
 
-bool Uldfilterproject::retrieveSubImage(QObject * qItem, int initial_x, int initial_y, int final_x, int final_y){
+
+void Uldfilterproject::retrieveImage(QRect r){
     
-    qDebug()<<"RetrieveImage:"<<qItem;
-    auto itm = qobject_cast<QQuickItem*>(qItem);
-    m_pGrab = itm  -> grabToImage();
-    if (m_pGrab == NULL) return false;
-    m_rSelection = QRect(QPoint(initial_x,initial_y),QPoint(final_x,final_y));
-    connect(
-                m_pGrab.data(),
-                &QQuickItemGrabResult::ready,
-                this,
-                &Uldfilterproject::imageRetrieved
-                );
-    return true;
+    m_grab.grab = true;
+    m_grab.selection = r;
     
 }
 
@@ -87,4 +64,34 @@ void Uldfilterproject::connectFilterToHost(){
     
 }
 
+QVideoFilterRunnable * Uldfilterproject::createFilterRunnable(){
+        
+    Uldfilterrunnable * fr = new Uldfilterrunnable;
+    fr->setFilter(this);
+    return fr;
+    
 
+}
+void Uldfilterrunnable::setFilter(Uldfilterproject*f){
+    
+    m_f=f;
+    
+}
+QVideoFrame Uldfilterrunnable::run(QVideoFrame * input, const QVideoSurfaceFormat &surfaceFormat, RunFlags flags){
+    
+    Q_UNUSED(surfaceFormat);
+    Q_UNUSED(flags);
+    
+    if (m_f->isGrabPending()){
+        QRect selectionRectangle = m_f -> grabSelectionRect();
+        input->map(QAbstractVideoBuffer::ReadOnly);
+        QImage vimgtotal = videodecoder.toARGB32(input);
+        input->unmap();
+        QImage vimgselection = selectionRectangle.isNull() ? vimgtotal : vimgtotal.copy(selectionRectangle);
+        m_f->grabDone(vimgselection);
+    }
+    
+    return *input;
+    
+}
+    

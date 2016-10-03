@@ -4,6 +4,10 @@
 #include <QImage>
 #include <QObject>
 
+#include <QAbstractVideoFilter>
+#include <QVideoFilterRunnable>
+
+
 #include <QSharedPointer>
 #include <QQuickItemGrabResult>
 
@@ -11,11 +15,12 @@
 #include <QQueue>
 #include <QRect>
 #include "uldsocket.h"
+#include "uldvideodec.h"
 
 /**
  * @brief      This class recieves grabs an image (texture) wrapping a QML item rectangle. And sends it to a file, socket, pipe etc.  
  */
-class Uldfilterproject : public QObject__
+class Uldfilterproject : public QAbstractVideoFilter
 {
     Q_OBJECT
 
@@ -25,9 +30,6 @@ class Uldfilterproject : public QObject__
 /**
  * Shared Pointer to a QQuickItemGrabResult. The QQuickItemGrabResult holds an image with the result of grabbing from a Quick Item.
  */
-    
-    QSharedPointer<QQuickItemGrabResult> m_pGrab;
-    
     struct {
         QString m_hostName;
         quint16 m_port;
@@ -36,21 +38,19 @@ class Uldfilterproject : public QObject__
     QThread m_thread;
     UldWorker * m_worker;
     
-    /* Selection rectangle */    
-    QRect m_rSelection;
-    
     
     void connectFilterToHost();
+    
+    
+    struct {
+        QRect selection;
+        bool grab;
+    }m_grab;
+    
     
 signals:
     void awakeWorker(QString hostname, quint16 portNumber);    
     
-private slots:
-/**
- * @brief      Do not call this function.
- */
-    void imageRetrieved(void);
-
     
 public:
     void setHostName(const QString & hostName);
@@ -68,14 +68,32 @@ public:
     Uldfilterproject(QObject * parent = Q_NULLPTR);
     
     //Retrieve Image 
-    Q_INVOKABLE bool retrieveSubImage(QObject * qItem, int initial_x, int initial_y, int final_x, int final_y);
-    Q_INVOKABLE bool retrieveImage(QObject * qItem);
+    QVideoFilterRunnable * createFilterRunnable(void) Q_DECL_OVERRIDE;
+    Q_INVOKABLE void retrieveImage(QRect r = QRect());
+    
+    void grabDone(QImage &img){
+        m_grab.grab = false;
+        m_worker -> imagePush(img); 
+    }
+    QRect grabSelectionRect(){return m_grab.selection;}
+    bool isGrabPending(){return m_grab.grab;}
     
     
     
     
 };
+class Uldfilterrunnable: public QVideoFilterRunnable {
 
+public:
+    uldvideodec videodecoder;
+    QVideoFrame run(QVideoFrame * input, const QVideoSurfaceFormat & sFormat, RunFlags flags) Q_DECL_OVERRIDE;
+    void setFilter(Uldfilterproject*f);
+private:
+    Uldfilterproject * m_f;
+    /* Selection rectangle */    
+    
+    
+};
 
 
 #endif // ULDFILTERPROJECT_H

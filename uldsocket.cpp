@@ -169,6 +169,10 @@ void UldWorker::uploadStart_WORKER(QString hostName, quint16 portNumber){
 }
 void UldWorker::imagePush(QImage &i){
     
+    if (i.isNull()){
+        qDebug()<<"Null QImage";
+        return;
+    }
     /* Sometime in the near future set a QJson Object Along with PNG file */
     //i=i.scaled(256,256);    
     /* Convert image to buffered RAM file */

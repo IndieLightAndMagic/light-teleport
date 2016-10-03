@@ -26,7 +26,7 @@ private:
     
 public:
     uldvideodec();
-    QByteArray toARGB32(QVideoFrame *fp);
+    QImage toARGB32(QVideoFrame *fp);
 };
 
 #endif // ULDVIDEODEC_H
