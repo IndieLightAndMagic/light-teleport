@@ -167,7 +167,7 @@ void UldWorker::uploadStart_WORKER(QString hostName, quint16 portNumber){
     delete s;
     
 }
-void UldWorker::imagePush(QImage &i){
+void UldWorker::imagePush(QImage i){
     
     if (i.isNull()){
         qDebug()<<"Null QImage";
@@ -179,8 +179,13 @@ void UldWorker::imagePush(QImage &i){
     QByteArray pngChunk;
     QBuffer pngChunkBuffer(&pngChunk);
     pngChunkBuffer.open(QIODevice::WriteOnly);
+    qDebug()<<"PUSH";
+    return;
     i.save(&pngChunkBuffer,"PNG");
     m_qi.enqueue(pngChunk);
+    qDebug()<<"QUEUE";
+    /*i = QImage (QSize(256,256),QImage::Format_ARGB32);
+    i.fill(0xff00a413);*/
     
 }
 void UldWorker::setAlive(bool alive){

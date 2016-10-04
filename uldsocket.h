@@ -21,7 +21,7 @@ signals:
     
 public slots:
     void uploadStart_WORKER(QString hostName, quint16 portNumber);
-    void imagePush(QImage & i);
+    void imagePush(QImage i);
     void setAlive(bool alive);
 
 private slots:

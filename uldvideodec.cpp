@@ -6,11 +6,11 @@
 void qt_convert_BGR32_to_ARGB32(const uchar *pinframe, uchar *poutframe, int width, int height, int flags){
     Q_UNUSED(flags);
     for (int i = 0; i < height; i++){
-        for (int j = 0; j < width; j ++){
+        for (int j = 0; j < width; j ++, pinframe +=4, poutframe +=4){
             poutframe[0] = pinframe[3];
             poutframe[1] = pinframe[2];
             poutframe[2] = pinframe[1];
-            poutframe[3] = pinframe[0];            
+            poutframe[3] = pinframe[0]; 
         }
     }
 }
@@ -79,7 +79,7 @@ uldvideodec::uldvideodec(){
 }
 
 QImage uldvideodec::toARGB32(QVideoFrame * fp){
-    
+    qDebug()<<"AMO A PAOLA";
     if(!fp->isValid()){
         qDebug()<<"Invalid QVideoFrame";
         return QImage();
@@ -99,6 +99,7 @@ QImage uldvideodec::toARGB32(QVideoFrame * fp){
     
     
     /* Decode */
+    qDebug()<<"Video Decoding:"<<fp->pixelFormat();
     m_yuvdecodedriver[fp->pixelFormat()].func(pyuv, prgb, width, height, m_yuvdecodedriver[fp->pixelFormat()].flag);        
     
     
