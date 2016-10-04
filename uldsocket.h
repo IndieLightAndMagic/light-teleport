@@ -8,7 +8,7 @@
 #include <QTimer>
 #include "qobject__.h"
 
-class UldWorker:public QObject__{
+class UldWorker:public QObject{
     Q_OBJECT
 public:
     UldWorker(QObject * parent = 0);

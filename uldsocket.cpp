@@ -5,7 +5,7 @@
 #include <QApplication>
 #include <QTimer>
 
-UldWorker::UldWorker(QObject* parent):QObject__(parent),
+UldWorker::UldWorker(QObject* parent):QObject(parent),
     msRetryTime(2000),
     m_alive(false),
     m_tmr(new QTimer(this))
