@@ -8,6 +8,15 @@
 #include <QTimer>
 #include "qobject__.h"
 
+typedef struct {
+
+    QMetaObject::Connection errorNotify;
+    QMetaObject::Connection stateNotitfy;
+    QMetaObject::Connection bytesWrittenNotify;
+    
+
+}ConnectionHandlers;
+
 class UldWorker:public QObject{
     Q_OBJECT
 public:
@@ -16,22 +25,28 @@ public:
     int msRetryTime;
 
 signals:
-    void uploadFinished();    
     void connectionErrorCheckConnectivity();
+    void dataOnTheQueue();
+    
     
 public slots:
-    void uploadStart_WORKER(QString hostName, quint16 portNumber);
-    void imagePush(QImage i);
     void setAlive(bool alive);
-
-private slots:
+    void testSlot();
+    void setHostPortNumber(QString hostName, quint16 portNumber);
+    void pushImage(QByteArray i);
+    
+    
+    void sendData();
     void bytesWritten(qint64 bytes);
     void errorNotify(QAbstractSocket::SocketError error);
     void socketStateDisplay(QAbstractSocket::SocketState state);
     void dotDisplay();
 
+
 private:
-    void uploadStartSetup(QTcpSocket * s);
+    void uploadStartSetup();
+    void uploadFinished();    
+    
     QQueue<QByteArray> m_qi;
     bool m_alive;
     QTimer * m_tmr;
@@ -51,6 +66,13 @@ private:
         qint64 tx_done;
     }txStatus;
     
+    
+    QTcpSocket * m_s;
+    QTcpSocket _m_s;
+    ConnectionHandlers ch;
+    
+    QString hostName;
+    quint16 portNumber;
 };
 
 

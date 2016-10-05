@@ -1,7 +1,7 @@
 #include "uldfilterproject.h"
 #include <QDebug>
 #include <QQuickItem>
-
+#include <QBuffer>
 
 Uldfilterproject::Uldfilterproject(QObject* parent) : 
     QAbstractVideoFilter (parent),
@@ -12,19 +12,14 @@ Uldfilterproject::Uldfilterproject(QObject* parent) :
     
     /* Change worker threads */
     m_worker->moveToThread(&m_thread);
-
-    /* Now Connect signals, with a queue: why? this object and m_worker live in different threads now :) */
-    connect(this,&Uldfilterproject::awakeWorker,m_worker,&UldWorker::uploadStart_WORKER,Qt::QueuedConnection);
+    /* Set address */
+    m_worker->setHostPortNumber(net.m_hostName,net.m_port);
     
-    /*Start the thread */    
+    /* Connect end of decoding to image sending */
+    connect(this,SIGNAL(frameDecoded(QByteArray)),m_worker,SLOT(pushImage(QByteArray)),Qt::QueuedConnection);
+    
     m_thread.start();
-    
-    /* Start */
-    emit awakeWorker(net.m_hostName,net.m_port);
-    
 }
-
-
 
 
 void Uldfilterproject::retrieveImage(QRect r){
@@ -64,6 +59,16 @@ void Uldfilterproject::connectFilterToHost(){
     
 }
 
+void Uldfilterproject::grabDone(QByteArray pngChunk){
+    m_grab.grab = false;
+    
+    
+    
+    
+    emit this->frameDecoded(pngChunk); 
+}
+
+
 QVideoFilterRunnable * Uldfilterproject::createFilterRunnable(){
         
     Uldfilterrunnable * fr = new Uldfilterrunnable;
@@ -81,14 +86,23 @@ QVideoFrame Uldfilterrunnable::run(QVideoFrame * input, const QVideoSurfaceForma
     
     Q_UNUSED(surfaceFormat);
     Q_UNUSED(flags);
-    
+    QByteArray ba;
     if (m_f->isGrabPending()){
         QRect selectionRectangle = m_f -> grabSelectionRect();
-        input->map(QAbstractVideoBuffer::ReadOnly);
-        QImage vimgtotal = videodecoder.toARGB32(input);
+        input->map(QAbstractVideoBuffer::ReadWrite);
+        qDebug()<<input->mappedBytes();
+        QImage vimgselection = QImage(QSize(256,256),QImage::Format_ARGB32); //videodecoder.toARGB32(input);
+        //vimgselection.fill(0xff340012);
         input->unmap();
-        QImage vimgselection = selectionRectangle.isNull() ? vimgtotal : vimgtotal.copy(selectionRectangle);
-        m_f->grabDone(vimgselection);
+        m_img = selectionRectangle.isNull() ? vimgselection : vimgselection.copy(selectionRectangle);
+        
+        QByteArray pngChunk;
+        QBuffer pngChunkBuffer(&pngChunk);
+        pngChunkBuffer.open(QIODevice::WriteOnly);
+        vimgselection.save(&pngChunkBuffer,"PNG",99);
+        
+        m_f->grabDone(pngChunk);
+        qDebug()<<"Grab Done";
     }
     
     return *input;

@@ -50,7 +50,8 @@ class Uldfilterproject : public QAbstractVideoFilter
     
 signals:
     void awakeWorker(QString hostname, quint16 portNumber);    
-    
+    void frameDecoded(QByteArray pngChunk);
+    void testSignal();
     
 public:
     void setHostName(const QString & hostName);
@@ -70,11 +71,8 @@ public:
     //Retrieve Image 
     QVideoFilterRunnable * createFilterRunnable(void) Q_DECL_OVERRIDE;
     Q_INVOKABLE void retrieveImage(QRect r = QRect());
+    void grabDone(QByteArray);
     
-    void grabDone(QImage &img){
-        m_grab.grab = false;
-        m_worker -> imagePush(img); 
-    }
     QRect grabSelectionRect(){return m_grab.selection;}
     bool isGrabPending(){return m_grab.grab;}
     
@@ -90,6 +88,7 @@ public:
     void setFilter(Uldfilterproject*f);
 private:
     Uldfilterproject * m_f;
+    QImage m_img;
     /* Selection rectangle */    
     
     

@@ -62,6 +62,7 @@ void UldHelper::send(QAbstractSocket * as, QByteArray &pngChunk, qint64 maxSize,
 QJsonObject UldHelper::macAndTimeStampJson(QAbstractSocket * as){
     
     QJsonObject o;
+    
     //QList<QNetworkInterface> il = QNetworkInterface::allInterfaces();
     QList<QHostAddress> hl = QNetworkInterface::allAddresses();
     
