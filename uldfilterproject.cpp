@@ -16,7 +16,7 @@ Uldfilterproject::Uldfilterproject(QObject* parent) :
     m_worker->setHostPortNumber(net.m_hostName,net.m_port);
     
     /* Connect end of decoding to image sending */
-    connect(this,SIGNAL(frameDecoded(QByteArray)),m_worker,SLOT(pushImage(QByteArray)),Qt::QueuedConnection);
+    connect(this,SIGNAL(frameDecoded(QByteArray,int,int)),m_worker,SLOT(pushImage(QByteArray,int,int)),Qt::QueuedConnection);
     
     m_thread.start();
 }
@@ -60,12 +60,9 @@ void Uldfilterproject::connectFilterToHost(){
 }
 
 void Uldfilterproject::grabDone(QByteArray pngChunk){
+    Q_UNUSED(pngChunk);
+    qDebug()<<"Grabbing Image Chunk";
     m_grab.grab = false;
-    
-    
-    
-    
-    emit this->frameDecoded(pngChunk); 
 }
 
 
@@ -88,23 +85,13 @@ QVideoFrame Uldfilterrunnable::run(QVideoFrame * input, const QVideoSurfaceForma
     Q_UNUSED(flags);
     QByteArray ba;
     if (m_f->isGrabPending()){
-        QRect selectionRectangle = m_f -> grabSelectionRect();
-        input->map(QAbstractVideoBuffer::ReadWrite);
-        qDebug()<<input->mappedBytes();
-        QImage vimgselection = QImage(QSize(256,256),QImage::Format_ARGB32); //videodecoder.toARGB32(input);
-        //vimgselection.fill(0xff340012);
+        qDebug()<<input->map(QAbstractVideoBuffer::ReadOnly);
+	ba = videodecoder.toARGB32ByteArray(input);
         input->unmap();
-        m_img = selectionRectangle.isNull() ? vimgselection : vimgselection.copy(selectionRectangle);
-        
-        QByteArray pngChunk;
-        QBuffer pngChunkBuffer(&pngChunk);
-        pngChunkBuffer.open(QIODevice::WriteOnly);
-        vimgselection.save(&pngChunkBuffer,"PNG",99);
-        
-        m_f->grabDone(pngChunk);
+	emit m_f->frameDecoded(ba,input->width(),input->height());
         qDebug()<<"Grab Done";
+	m_f->m_grab.grab = false;
     }
-    
     return *input;
     
 }

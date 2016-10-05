@@ -42,18 +42,20 @@ class Uldfilterproject : public QAbstractVideoFilter
     void connectFilterToHost();
     
     
-    struct {
-        QRect selection;
-        bool grab;
-    }m_grab;
+    
+    QByteArray m_imageArray;
     
     
 signals:
     void awakeWorker(QString hostname, quint16 portNumber);    
-    void frameDecoded(QByteArray pngChunk);
+    void frameDecoded(QByteArray pngChunk, int width, int height);
     void testSignal();
     
 public:
+    struct {
+        QRect selection;
+        bool grab;
+    }m_grab;
     void setHostName(const QString & hostName);
     QString hostName() const;
     
@@ -71,11 +73,12 @@ public:
     //Retrieve Image 
     QVideoFilterRunnable * createFilterRunnable(void) Q_DECL_OVERRIDE;
     Q_INVOKABLE void retrieveImage(QRect r = QRect());
-    void grabDone(QByteArray);
     
+    void grabDone(QByteArray);
     QRect grabSelectionRect(){return m_grab.selection;}
     bool isGrabPending(){return m_grab.grab;}
     
+
     
     
     

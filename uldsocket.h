@@ -33,10 +33,9 @@ public slots:
     void setAlive(bool alive);
     void testSlot();
     void setHostPortNumber(QString hostName, quint16 portNumber);
-    void pushImage(QByteArray i);
+    void pushImage(QByteArray i, int width, int height);
     
     
-    void sendData();
     void bytesWritten(qint64 bytes);
     void errorNotify(QAbstractSocket::SocketError error);
     void socketStateDisplay(QAbstractSocket::SocketState state);

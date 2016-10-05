@@ -78,11 +78,25 @@ uldvideodec::uldvideodec(){
     
 }
 
-QImage uldvideodec::toARGB32(QVideoFrame * fp){
+QImage uldvideodec::toARGB32Image(QVideoFrame * fp){
+    
+    QByteArray rgbBuffer = toARGB32ByteArray(fp);
+    const uchar * prgb = reinterpret_cast<uchar*>(rgbBuffer.data()); 
+    
+    /* Create QImage */
+    /* Encode in Qimage */
+    QImage img = QImage(prgb,fp->width(),fp->height(),QImage::Format_ARGB32);
+    
+    return img;
+    
+}
+QByteArray uldvideodec::toARGB32ByteArray(QVideoFrame*fp){
+
     qDebug()<<"AMO A PAOLA";
     if(!fp->isValid()){
         qDebug()<<"Invalid QVideoFrame";
-        return QImage();
+        /* Returning empty ByteArray */
+        return QByteArray();
     }
     
     int width = fp->width();
@@ -102,15 +116,9 @@ QImage uldvideodec::toARGB32(QVideoFrame * fp){
     qDebug()<<"Video Decoding:"<<fp->pixelFormat();
     m_yuvdecodedriver[fp->pixelFormat()].func(pyuv, prgb, width, height, m_yuvdecodedriver[fp->pixelFormat()].flag);        
     
-    
-    
-    /* Create QImage */
-    /* Encode in Qimage */
-    QImage img = QImage(prgb,width,height,QImage::Format_ARGB32);
-    
-    return img;
-    
+    return rgbBuffer;
 }
+
 void debugVideoFrameInfo(QVideoFrame  * fp, const QVideoSurfaceFormat &sf ){
     
     if (fp->isMapped()==false) {

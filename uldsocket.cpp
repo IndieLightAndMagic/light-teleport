@@ -60,35 +60,22 @@ void UldWorker::uploadFinished(){
     
 }
 
-void UldWorker::pushImage(QByteArray pngChunk){
+void UldWorker::pushImage(QByteArray imageChunk, int width, int height){
+
+
+    uchar * baidata = reinterpret_cast<uchar*>(imageChunk.data());
+    QImage img = QImage(baidata, width, height, QImage::Format_ARGB32);
+    QByteArray pngChunk;
+    QBuffer pngChunkBuffer(&pngChunk);
+    pngChunkBuffer.open(QIODevice::WriteOnly);
+    img.save(&pngChunkBuffer,"PNG");
     
     /* Convert to PNG byte array*/
-    qDebug()<<"DATA---->";    
-        
-    
-    
     /* Format PNG */
     QJsonObject o = UldHelper::macAndTimeStampJson(m_s);
-    qDebug()<<"Image Size: "<<pngChunk.size();
-    UldHelper::jsonize(pngChunk,o);
-    qDebug()<<"With Serialized Info:"<<pngChunk.size();
-    
-    m_qi.enqueue(pngChunk);
-
-    emit dataOnTheQueue();
-}   
-
-
-void UldWorker::sendData(){
-    
-    qDebug()<<"Sending Data";
-    QByteArray ba = m_qi.dequeue();
-    
-    
-    
-    qDebug()<<"Data Sent";
-    
-    
+    qDebug()<<"Image Size: "<<imageChunk.size();
+    UldHelper::jsonize(imageChunk,o);
+    qDebug()<<"With Serialized Info:"<<imageChunk.size();
         
 }
 void UldWorker::testSlot(){
