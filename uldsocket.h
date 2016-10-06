@@ -13,6 +13,7 @@ typedef struct {
     QMetaObject::Connection errorNotify;
     QMetaObject::Connection stateNotitfy;
     QMetaObject::Connection bytesWrittenNotify;
+    QMetaObject::Connection disconnectedNotify;
     
 
 }ConnectionHandlers;
@@ -26,7 +27,6 @@ public:
 
 signals:
     void connectionErrorCheckConnectivity();
-    void dataOnTheQueue();
     
     
 public slots:
@@ -34,13 +34,12 @@ public slots:
     void testSlot();
     void setHostPortNumber(QString hostName, quint16 portNumber);
     void pushImage(QByteArray i, int width, int height);
-    
-    
     void bytesWritten(qint64 bytes);
     void errorNotify(QAbstractSocket::SocketError error);
     void socketStateDisplay(QAbstractSocket::SocketState state);
     void dotDisplay();
-
+    void upload(QByteArray ba);
+    void disconnected();
 
 private:
     void uploadStartSetup();
@@ -55,6 +54,8 @@ private:
         GO,
         UPLOADING,
         RESUME,
+	FINISH,
+	IDLE
     }WORKERSTATE;
     
     WORKERSTATE m_workerState;
@@ -67,7 +68,7 @@ private:
     
     
     QTcpSocket * m_s;
-    QTcpSocket _m_s;
+    QTcpSocket * m_deadSocket;
     ConnectionHandlers ch;
     
     QString hostName;

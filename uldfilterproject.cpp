@@ -5,7 +5,7 @@
 
 Uldfilterproject::Uldfilterproject(QObject* parent) : 
     QAbstractVideoFilter (parent),
-    net({"192.168.1.5",8989}),
+    net({"192.168.1.1",8989}),
     m_worker(new UldWorker()),
     m_grab({QRect(),false})
 {
