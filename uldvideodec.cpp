@@ -5,13 +5,20 @@
 
 void qt_convert_BGR32_to_ARGB32(const uchar *pinframe, uchar *poutframe, int width, int height, int flags){
     Q_UNUSED(flags);
-    for (int i = 0; i < height; i++){
+    /* pinframe[3] ALPHA FIELD */    
+    /* Found out what is the the alpha */
+    pinframe += (width*height*4)-width*4; 
+    for (int i = 0; i < height; i++,pinframe-=2*width*4){
         for (int j = 0; j < width; j ++, pinframe +=4, poutframe +=4){
-            poutframe[0] = pinframe[3];
-            poutframe[1] = pinframe[2];
-            poutframe[2] = pinframe[1];
-            poutframe[3] = pinframe[0]; 
+           /*A*/ poutframe[3] = pinframe[3]; //A
+           /*B*/ poutframe[2] = pinframe[0]; //B
+           /*G*/ poutframe[1] = pinframe[1]; //G 
+           /*R*/ poutframe[0] = pinframe[2]; //R
+            
+            /* Check score for ffmonkey */
+            //for (int k = 0; k<4;k++) ffmonkey[k] += pinframe[k] == 0xff ? 1 : 0;
         }
+            
     }
 }
 
