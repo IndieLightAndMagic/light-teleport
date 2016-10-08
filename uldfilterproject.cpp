@@ -60,7 +60,7 @@ void Uldfilterproject::connectFilterToHost(){
 }
 
 void Uldfilterproject::grabDone(QByteArray pngChunk){
-    Q_UNUSED(pngChunk);
+    Q_UNUSED(pngChunk);	
     qDebug()<<"Grabbing Image Chunk";
     m_grab.grab = false;
 }

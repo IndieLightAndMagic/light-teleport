@@ -70,21 +70,30 @@ QJsonObject UldHelper::macAndTimeStampJson(QAbstractSocket * as){
     
     QString hadd;
     int index = 0; 
+    bool found = false;
+#ifndef ANDROID    
     for (QList<QHostAddress>::iterator host = hl.begin(); host!= hl.end(); host++){
+        if (found)continue;
         if (host[0] == localAddress){
+            found = true;
             QNetworkInterface qni = QNetworkInterface::interfaceFromIndex(index);
             hadd = qni.hardwareAddress();
-            QStringList octets = hadd.split(":");
-            hadd = octets.join("");
-        
         }
         index++;
+    
     }
+    hadd = found ? hadd : QNetworkInterface::interfaceFromIndex(0).hardwareAddress();
+#else
+    hadd = "AN:DR:OI:DB:UI:LD";
+#endif
+    QStringList octets = hadd.split(":");
+    hadd = octets.join("");
     o["hwAdd"] = hadd;
     QString dtString = QDateTime::currentDateTimeUtc().toString("yy.MM.dd.HH.mm.ss.zzz");
     QStringList dtStringList = dtString.split(".");
     dtString = dtStringList.join("");
     o["tsUtc"] = dtString;
+    qDebug()<<found<<"->"<<o;
     
     return o;
     
