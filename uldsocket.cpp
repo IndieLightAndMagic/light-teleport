@@ -4,6 +4,7 @@
 #include <QBuffer>
 #include <QApplication>
 #include <QTimer>
+#include <QMatrix>
 
 UldWorker::UldWorker(QObject* parent):QObject(parent),
     msRetryTime(2000),
@@ -37,8 +38,9 @@ void UldWorker::bytesWritten(qint64 bytes){
     
     d = d*100;
     d = d/s;
-    
+#ifndef ANDROID    
     qInfo()<<"Bytes Written: "<<txStatus.tx_done<<" / "<<txStatus.tx_size<< " ["<<d<<"%]";
+#endif    
     m_workerState = RESUME;
 
 }
@@ -50,7 +52,7 @@ void UldWorker::uploadStartSetup(){
     ch.errorNotify = connect(m_s,static_cast<QAbstractSocketError>(&QAbstractSocket::error),this,&UldWorker::errorNotify);
     
     /* State changed */
-    ch.stateNotitfy = connect(m_s,&QAbstractSocket::stateChanged,this,&UldWorker::socketStateDisplay);
+    //ch.stateNotitfy = connect(m_s,&QAbstractSocket::stateChanged,this,&UldWorker::socketStateDisplay);
     
     /* Bytes written */
     ch.bytesWrittenNotify = connect(m_s,&QIODevice::bytesWritten,this,&UldWorker::bytesWritten);
@@ -61,7 +63,7 @@ void UldWorker::uploadStartSetup(){
 void UldWorker::uploadFinished(){
     
     disconnect(ch.errorNotify);
-    disconnect(ch.stateNotitfy);
+    //disconnect(ch.stateNotitfy);
     disconnect(ch.bytesWrittenNotify);
     
 }
@@ -135,6 +137,14 @@ void UldWorker::upload(QByteArray ba){
             } else if (ss == QAbstractSocket::ConnectedState){
                 
                 m_tmr->stop();
+                
+                //1. Get Json Object Header
+                QJsonObject o = UldHelper::macAndTimeStampJson(m_s);
+                qDebug()<<"Image Size: "<<ba.size();
+                
+                //2. Set JsonObject Header in top of PNGchunk. 
+                UldHelper::jsonize(ba,o);
+                qDebug()<<"With Serialized Info:"<<ba.size();
                 txStatus.tx_size = ba.size();
                 txStatus.tx_done = 0;
                 
@@ -166,27 +176,22 @@ void UldWorker::pushImage(QByteArray imageChunk, int width, int height){
     
     /* Create QImage */
     QImage img = QImage(baidata, width, height, QImage::Format_ARGB32);
-    
+#ifdef ANDROID
+    QMatrix rotationMatrix;
+    rotationMatrix.rotate(90);
+    img = img.transformed(rotationMatrix);
+#endif
     /* Encode Image into PNG */
     QByteArray pngChunk;
     QBuffer pngChunkBuffer(&pngChunk);
     pngChunkBuffer.open(QIODevice::WriteOnly);
+    //img = img.scaled(img.width()>>7, img.height()>>7);
     img.save(&pngChunkBuffer,"PNG");
 #ifndef ANDROID
     img.save("test.png","PNG");
 #endif    
-    /* Get PNGCHUNK and Encode it for Autoformax Format */
     
-    //1. Get Json Object Header
-    QTcpSocket s;
-    QJsonObject o = UldHelper::macAndTimeStampJson(&s);
-    qDebug()<<"Image Size: "<<pngChunk.size();
-    
-    //2. Set JsonObject Header in top of PNGchunk. 
-    UldHelper::jsonize(pngChunk,o);
-    qDebug()<<"With Serialized Info:"<<pngChunk.size();
-    
-    //3. Setup transmission.
+    /*. Setup transmission.*/
     upload(pngChunk);
     
     
