@@ -34,6 +34,8 @@ public:
     static QByteArray swapEndianness(int);
     static QJsonObject macAndTimeStampJson(QAbstractSocket* as);
 
+    static QString retrieveMacAddress(QAbstractSocket*as);
+    
 };
 
 #endif // ULDHELPER_H

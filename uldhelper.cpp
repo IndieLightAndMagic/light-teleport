@@ -35,11 +35,11 @@ void UldHelper::jsonize(QByteArray & ba, QJsonObject & jo){
     serialize(jodba);
     ba = jodba + ba;
     serialize(ba);
-        
+    
 }
 
 void UldHelper::serialize(QByteArray & pngChunk){
-
+    
     /* Save a PNG file on RAM and upload it */
     int pngChunkSize = pngChunk.size();
     pngChunk = swapEndianness(pngChunkSize)+ pngChunk;
@@ -72,7 +72,7 @@ QJsonObject UldHelper::macAndTimeStampJson(QAbstractSocket * as){
     int index = 0; 
     bool found = false;
 #ifndef ANDROID    
-    for (QList<QHostAddress>::iterator host = hl.begin(); host!= hl.end(); host++){
+    /*for (QList<QHostAddress>::iterator host = hl.begin(); host!= hl.end(); host++){
         if (found)continue;
         if (host[0] == localAddress){
             found = true;
@@ -80,11 +80,13 @@ QJsonObject UldHelper::macAndTimeStampJson(QAbstractSocket * as){
             hadd = qni.hardwareAddress();
         }
         index++;
-    
+        
     }
-    hadd = found ? hadd : QNetworkInterface::interfaceFromIndex(0).hardwareAddress();
+    hadd = found ? hadd : QNetworkInterface::interfaceFromIndex(0).hardwareAddress();*/
+    hadd = UldHelper::retrieveMacAddress(as);
+    
 #else
-    hadd = "AN:DR:OI:DB:UI:LD";
+    hadd = UldHelper::retrieveMacAddress(as);
 #endif
     QStringList octets = hadd.split(":");
     hadd = octets.join("");
@@ -98,4 +100,23 @@ QJsonObject UldHelper::macAndTimeStampJson(QAbstractSocket * as){
     return o;
     
     
+}
+QString UldHelper::retrieveMacAddress(QAbstractSocket*as) {
+    
+    QHostAddress sockIp = as->localAddress();
+    foreach(QNetworkInterface interface, QNetworkInterface::allInterfaces())
+    {
+        QList<QNetworkAddressEntry> nades = interface.addressEntries();
+        //if (hadd!="00:00:00:00:00:00") {
+        foreach(QNetworkAddressEntry entry, nades){
+            QHostAddress ip = entry.ip();
+            if (ip==sockIp){
+                
+                QString hadd = interface.hardwareAddress();
+                return hadd;
+            }
+        }
+        //}
+    }
+    return "AN:DR:OI:DB:UI:LD";
 }
