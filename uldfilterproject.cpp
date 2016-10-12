@@ -17,7 +17,8 @@ Uldfilterproject::Uldfilterproject(QObject* parent) :
     
     /* Connect end of decoding to image sending */
     connect(this,SIGNAL(frameDecoded(QByteArray,int,int)),m_worker,SLOT(pushImage(QByteArray,int,int)),Qt::QueuedConnection);
-    
+    connect(m_worker,SIGNAL(connectionErrorCheckConnectivity()),this,SLOT(connectionErrorCheckConnectivity()));
+    connect(m_worker,SIGNAL(connectionSuccess()),this,SLOT(connectionSuccessSlot()));
     m_thread.start();
 }
 
@@ -32,6 +33,8 @@ void Uldfilterproject::retrieveImage(QRect r){
 void Uldfilterproject::setHostName(const QString & hostName){
     
     net.m_hostName = hostName;
+    m_worker -> setHostPortNumber(net.m_hostName,net.m_port);
+    
     
 }
 QString Uldfilterproject::hostName()const{
@@ -41,6 +44,7 @@ QString Uldfilterproject::hostName()const{
 void Uldfilterproject::setTcpPort(quint16 tcpPortNumber){
     
     net.m_port = tcpPortNumber;
+    m_worker -> setHostPortNumber(net.m_hostName,net.m_port);
     
 }
 
@@ -65,6 +69,12 @@ void Uldfilterproject::grabDone(QByteArray pngChunk){
     m_grab.grab = false;
 }
 
+void Uldfilterproject::connectionErrorCheckConnectivity(){
+    emit connectionRefusedError(net.m_hostName,net.m_port);
+}
+void Uldfilterproject::connectionSuccessSlot(){
+    emit connectionSuccess();
+}
 
 QVideoFilterRunnable * Uldfilterproject::createFilterRunnable(){
         

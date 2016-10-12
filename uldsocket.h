@@ -27,6 +27,7 @@ public:
 
 signals:
     void connectionErrorCheckConnectivity();
+    void connectionSuccess();
     
     
 public slots:
@@ -36,6 +37,7 @@ public slots:
     void pushImage(QByteArray i, int width, int height);
     void bytesWritten(qint64 bytes);
     void errorNotify(QAbstractSocket::SocketError error);
+    
     void socketStateDisplay(QAbstractSocket::SocketState state);
     void dotDisplay();
     void upload(QByteArray ba);

@@ -122,8 +122,11 @@ void UldWorker::upload(QByteArray ba){
                     m_workerState = WAIT;
                     qDebug()<<"WAIT";
                     qCritical()<<"Connection Failed... retrying in "<<float(msRetryTime)/1000<<" secs...";
+                    emit connectionErrorCheckConnectivity();
                     m_tmr->stop();
                     m_tmr->start(msRetryTime);
+                } else {
+                    emit connectionSuccess();
                 }
                 continue;
                         
@@ -207,7 +210,8 @@ void UldWorker::setAlive(bool alive){
 
 void UldWorker::errorNotify(QAbstractSocket::SocketError error){
     qWarning()<<"Error: "<<error;
-    emit connectionErrorCheckConnectivity();
+    if (error == QAbstractSocket::ConnectionRefusedError)
+        emit connectionErrorCheckConnectivity();
 }
 
 void UldWorker::socketStateDisplay(QAbstractSocket::SocketState state){

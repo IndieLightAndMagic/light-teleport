@@ -25,7 +25,7 @@ class Uldfilterproject : public QAbstractVideoFilter
     Q_OBJECT
 
     Q_PROPERTY (QString hostName READ hostName WRITE setHostName)
-    Q_PROPERTY (int tcpPort READ tcpPort WRITE setTcpPort)
+    Q_PROPERTY (qint16 tcpPort READ tcpPort WRITE setTcpPort)
     
 /**
  * Shared Pointer to a QQuickItemGrabResult. The QQuickItemGrabResult holds an image with the result of grabbing from a Quick Item.
@@ -47,9 +47,9 @@ class Uldfilterproject : public QAbstractVideoFilter
     
     
 signals:
-    void awakeWorker(QString hostname, quint16 portNumber);    
+    void connectionRefusedError(QString hostname, quint16 portNumber);
+    void connectionSuccess();    
     void frameDecoded(QByteArray pngChunk, int width, int height);
-    void testSignal();
     
 public:
     struct {
@@ -77,7 +77,10 @@ public:
     void grabDone(QByteArray);
     QRect grabSelectionRect(){return m_grab.selection;}
     bool isGrabPending(){return m_grab.grab;}
-    
+
+public slots:
+    void connectionErrorCheckConnectivity();
+    void connectionSuccessSlot();
 
     
     
